@@ -1,0 +1,290 @@
+import itertools
+import numpy as np
+import csv
+class Nodo:
+    def __init__(self, nombre):
+        self.nombre = nombre
+        self.relaciones = []
+
+    def agregarRelacion(self, nodo):
+        self.relaciones.append(nodo)
+
+
+class ModeloCaracteristicas:
+    def __init__(self):
+        self.caracteristicas = []
+
+    def agregarCaracteristica(self, nodo):
+        self.caracteristicas.append(nodo)
+
+    def relacionar(self, nodo1, nodo2, tipoRelacion):
+        nodo1.agregarRelacion([nodo2.nombre,tipoRelacion])
+        #nodo2.agregarRelacion([nodo1])
+
+    def buscarCaracteristica(self, nombreCaracteristica):
+        for rama in self.caracteristicas:
+            if(rama.nombre == nombreCaracteristica):
+                return rama
+        return None
+    def buscarCaracteristicaPadre(self, nombreCaracteristica, nombreRelacion):
+        for rama in self.caracteristicas:
+            for relaciones in rama.relaciones:
+                if(relaciones == [nombreCaracteristica,nombreRelacion]):
+                    return rama
+        return None
+
+    def calcularPosiblesEstados(self):
+        reconfiguraciones = []
+        for nodo in self.caracteristicas:
+            for relacion in nodo.relaciones:
+                posibleEstado = self.estadoTipoRelacion(relacion)
+                if(posibleEstado != []):
+                    reconfiguraciones.append(posibleEstado)
+        return self.eliminarDuplicados(reconfiguraciones)
+
+    def estadoTipoRelacion(self,nodo):
+        nodoArbol = []
+        if (nodo[1] == "Obligatoria"):
+            nodoArbol.append([nodo[0] + " activada"])
+        if (nodo[1] == "Opcional"):
+            nodoArbol.append([nodo[0] + " activada", nodo[0] + " desactivada"])
+        if (nodo[1] == "XOR"):
+            caracteristicas = self.buscarRelacionesXOR(nodo[0])
+            for combo in itertools.product([True, False], repeat=len(caracteristicas)):
+                if combo.count(True) != 1:
+                    continue
+                resultado = []
+                for i, activado in enumerate(combo):
+                    estado = "activada" if activado else "desactivada"
+                    resultado.append(f"{caracteristicas[i]} {estado}")
+                #print(resultado)
+                nodoArbol.append(resultado)
+        if (nodo[1] == "OR"):
+            caracteristicas = self.buscarRelacionesOR(nodo[0])
+            combinaciones = list(itertools.product(["activada", "desactivada"], repeat=len(caracteristicas)))
+            # Filtrar las combinaciones para asegurarse de que al menos una posición esté activada
+            combinaciones_filtradas = [combo for combo in combinaciones if combo.count("activada") >= 0]
+            # Agregar el texto "activado" o "desactivado" a cada posición del arreglo en cada combinación
+            combinaciones_con_texto = [[f"{caracteristicas[i]} {estado}" for i, estado in enumerate(combo)] for combo in
+                                       combinaciones_filtradas]
+            nodoArbol = combinaciones_con_texto
+        return nodoArbol
+
+    def buscarRelacionesXOR(self, nodo):
+        caracteristicasXOR = []
+        caracteristica = self.buscarCaracteristicaPadre(nodo, "XOR")
+        for ramas in caracteristica.relaciones:
+            if(ramas[1] == "XOR"):
+                caracteristicasXOR.append(ramas[0])
+        return caracteristicasXOR
+
+    def buscarRelacionesOR(self, nodo):
+        caracteristicasOR = []
+        caracteristica = self.buscarCaracteristicaPadre(nodo, "OR")
+        for ramas in caracteristica.relaciones:
+            if (ramas[1] == "OR"):
+                caracteristicasOR.append(ramas[0])
+        return caracteristicasOR
+
+    def removerRelacionesInvalidas(self,reconfiguraciones):
+        posiblesEstados= []
+        print("reconfiguraciones iniciales",len(reconfiguraciones))
+        for nodo in reconfiguraciones:
+            relacionInvalida = False
+            for caracteristica in nodo:
+                nombreCaracteristica = caracteristica.replace(" desactivada", "")
+                caracteristicaBuscada = self.buscarCaracteristica(nombreCaracteristica)
+                if caracteristicaBuscada != None:
+                    for relacion in caracteristicaBuscada.relaciones:
+                        dato = relacion[0] +" activada"
+                        #print(dato)
+                        if dato in nodo and relacion[1] != "Requiere":
+                            relacionInvalida = True
+                else:
+                    nombreCaracteristicaActivada = caracteristica.replace(" activada", "")
+                    caracteristicaBuscada = self.buscarCaracteristica(nombreCaracteristicaActivada)
+                    existeOR = any("OR" in arreglo for arreglo in caracteristicaBuscada.relaciones)
+                    if existeOR:
+                        contadorCaracteristicasActivadas = 0
+                        for relacion in caracteristicaBuscada.relaciones:
+                            if relacion[1] == "OR":
+                                dato = relacion[0] + " activada"
+                                if dato in nodo:
+                                    contadorCaracteristicasActivadas+=1
+                        if contadorCaracteristicasActivadas == 0:
+                            relacionInvalida = True
+            if not relacionInvalida:
+                posiblesEstados.append(nodo)
+            else:
+                print(nodo)
+        print("reconfiguraciones finales sin excluir require",len(posiblesEstados))
+        return self.filtrarRelacionesRequire(posiblesEstados)
+
+
+
+    def filtrarRelacionesRequire(self, reconfiguraciones):
+        posiblesEstados = []
+        for nodo in reconfiguraciones:
+            caracteristicasRequeridas = []
+            condicion = True
+            for caracteristica in nodo:
+                nombreCaracteristica = caracteristica.replace(" activada","")
+                caracteristicaBuscada = self.buscarCaracteristica(nombreCaracteristica)
+                if caracteristicaBuscada != None:
+                    #print(caracteristicaBuscada.nombre)
+                    for ramas in caracteristicaBuscada.relaciones:
+                        #print(ramas[1])
+                        if(ramas[1]== "Requiere"):
+                            caracteristicasRequeridas.append(ramas[0] + " activada")
+                            #print("llego a requerida")
+            for requeridas in caracteristicasRequeridas:
+                if not requeridas in nodo:
+                    condicion = False
+                    #print("llego a falso")
+            if condicion:
+                posiblesEstados.append(nodo)
+        print(len(posiblesEstados))
+        return posiblesEstados
+
+    def ordenarPosiblesEstados(self, arrays):
+        arr = []
+        for array in arrays:
+            array.sort()
+            for subarray in array:
+                subarray.sort()
+                #print(subarray)
+                #if isinstance(subarray,list):
+                    #for subsubarray in subarray:
+                        #print("holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                        #subsubarray.sort()
+                        #print(array)
+        #print("aqui va")
+        #print(arrays)
+        return arrays
+    def buscarPosibleEstado(self, reconfiguraciones, nodo):
+        condicion = False
+        for rama in reconfiguraciones:
+            for hoja in rama:
+                if hoja == nodo:
+                    condicion = True
+                    return condicion
+        return condicion
+
+    def eliminarDuplicados(self, posiblesEstados):
+        posiblesEstados = self.ordenarPosiblesEstados(posiblesEstados)
+        print("posibles estados",len(posiblesEstados))
+        print(posiblesEstados)
+        reconfiguraciones = []
+        for rama in posiblesEstados:
+            condicion = False
+            for hoja in rama:
+                condicion = self.buscarPosibleEstado(reconfiguraciones,hoja)
+            if not condicion:
+                if len(rama) == 1:
+                    reconfiguraciones.append(hoja)
+                else:
+                    reconfiguraciones.append(rama)
+        print("estados finales ",len(reconfiguraciones))
+        print(reconfiguraciones)
+        return reconfiguraciones
+
+    def buscarCaracteristicaOR(self, nodo):
+        caracteristica = self.buscarCaracteristica(nodo)
+        for ramas in caracteristica.relaciones:
+            if (ramas[1] == "OR"):
+                return ramas[0]
+        return None
+
+
+
+    def permutarCaracteristicas(self, reconfiguraciones):
+        #result = list(set(itertools.product(*reconfiguraciones)))
+        result = list(itertools.product(*reconfiguraciones))
+        resultado = []
+        print("largo tupla", len(result))
+        for tupla in result:
+            lista = list(tupla)
+            arreglo = []
+            for posicionLista in lista:
+                if isinstance(posicionLista, list):
+                    arreglo.extend(posicionLista)
+                else:
+                    arreglo.append(posicionLista)
+            resultado.append(arreglo)
+        print("cantidad resultados",len(resultado))
+        return self.removerRelacionesInvalidas(resultado)
+
+    def almacenarPosiblesEstados(self, nombreArchivo,resultado):
+        with open(nombreArchivo, 'w', newline='') as archivo_csv:
+            writer = csv.writer(archivo_csv)
+            writer.writerows(resultado)
+
+    def buscarPadre(self, caracteristica):
+        for rama in self.caracteristicas:
+            for relaciones in rama.relaciones:
+                if(relaciones[0] == caracteristica):
+                    return rama
+        return None
+
+    def obtenerArbol(self):
+        arbol = []
+        print("hola")
+        for caracteristica in self.caracteristicas:
+            arbol.append(caracteristica.nombre)
+            print(caracteristica.nombre)
+        return arbol
+
+    def obtenerRelacionesCaracteristica(self, nombreCaracteristica):
+        caracteristica = self.buscarCaracteristica(nombreCaracteristica)
+        if caracteristica != None:
+            return caracteristica.relaciones
+        else:
+            return None
+    def obtenerRelacionesMC(self):
+        relacionesMC = {}
+        for caracteristica in self.caracteristicas:
+            relacionesCaracteristica = []
+            for relacionCaracteristica in caracteristica.relaciones:
+                if relacionCaracteristica[1] != "Requiere" and relacionCaracteristica[1] != "Excluye":
+                    print(relacionCaracteristica[1])
+                    relacionesCaracteristica.append(relacionCaracteristica[0])
+            relacionesMC.update({caracteristica.nombre : relacionesCaracteristica})
+        return relacionesMC
+
+
+
+
+
+
+def generarPosiblesEstados():
+    mc = ModeloCaracteristicas()
+    mc.agregarCaracteristica(Nodo("Gestor Aire"))
+    mc.agregarCaracteristica(Nodo("Visualizador calidad aire"))
+    mc.agregarCaracteristica(Nodo("Visualizador restriccion lena"))
+    mc.agregarCaracteristica(Nodo("Turismo"))
+    mc.agregarCaracteristica(Nodo("Ambientes cerrados"))
+    mc.agregarCaracteristica(Nodo("Ambientes abiertos"))
+    mc.agregarCaracteristica(Nodo("Deportes"))
+    mc.agregarCaracteristica(Nodo("Entretenimiento"))
+    mc.agregarCaracteristica(Nodo("Entretenimiento Familiar"))
+    mc.agregarCaracteristica(Nodo("Entretenimiento Adulto"))
+    mc.agregarCaracteristica(Nodo("Entretenimiento Tercera edad"))
+    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"),mc.buscarCaracteristica("Visualizador calidad aire"), "Obligatoria")
+    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"), mc.buscarCaracteristica("Turismo"), "Obligatoria")
+    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"), mc.buscarCaracteristica("Deportes"), "Opcional")
+    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"), mc.buscarCaracteristica("Entretenimiento"), "Opcional")
+    mc.relacionar(mc.buscarCaracteristica("Visualizador calidad aire"), mc.buscarCaracteristica("Visualizador restriccion lena"), "Opcional")
+    mc.relacionar(mc.buscarCaracteristica("Turismo"), mc.buscarCaracteristica("Ambientes cerrados"), "XOR")
+    mc.relacionar(mc.buscarCaracteristica("Turismo"), mc.buscarCaracteristica("Ambientes abiertos"), "XOR")
+    mc.relacionar(mc.buscarCaracteristica("Ambientes abiertos"), mc.buscarCaracteristica("Deportes"), "Requiere")
+    mc.relacionar(mc.buscarCaracteristica("Ambientes cerrados"), mc.buscarCaracteristica("Visualizador restriccion lena"), "Requiere")
+    mc.relacionar(mc.buscarCaracteristica("Entretenimiento"), mc.buscarCaracteristica("Entretenimiento Familiar"), "OR")
+    mc.relacionar(mc.buscarCaracteristica("Entretenimiento"), mc.buscarCaracteristica("Entretenimiento Adulto"), "OR")
+    mc.relacionar(mc.buscarCaracteristica("Entretenimiento"), mc.buscarCaracteristica("Entretenimiento Tercera edad"), "OR")
+    #print(mc.calcularPosiblesEstados())
+    mc.almacenarPosiblesEstados("datos.csv", mc.permutarCaracteristicas(mc.calcularPosiblesEstados()))
+    #print(mc.permutarCaracteristicas(mc.calcularPosiblesEstados()))
+    return mc
+
+
+
