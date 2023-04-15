@@ -16,28 +16,28 @@ async def iniciar_app():
 @app.get("/obtenerReconfiguracion")
 async def obtenerReconfiguracion(reglaAdaptacion : float):
     resultado = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", reglaAdaptacion)
-    return json.dumps(resultado, ensure_ascii=False)
+    return resultado
 
 @app.get("/obtenerReconfiguracionJSON")
 async def obtenerReconfiguracionJSON(reglaAdaptacion : float):
     resultado = aprendizaje_automatico.obtenerJSONPrediccion(aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", reglaAdaptacion))
-    return json.dumps(resultado, ensure_ascii=False)
+    return resultado
 
 
 #funcion que retorna el arbol completo de caracteristicas
 @app.get("/obtenerArbol/")
 async def obtenerCaracteristicas():
-    return json.dumps(mc.obtenerArbol(), ensure_ascii=False)
+    return mc.obtenerArbol()
 
 #función que retorna las relaciones de una caracteristica
 @app.get("/obtenerRelacionesCaracteristica/")
 async def obtenerRelacionesCaracteristica(caracteristica : str):
-    return json.dumps(mc.obtenerRelacionesCaracteristica(caracteristica), ensure_ascii=False)
+    return mc.obtenerRelacionesCaracteristica(caracteristica)
 
 #función que retorna todas las relaciones del mc
 @app.get("/obtenerRelacionesMC/")
 async def obtenerRelacionesMC():
-    return json.dumps(mc.obtenerRelacionesMC(), ensure_ascii=False)
+    return mc.obtenerRelacionesMC()
 
 
 
