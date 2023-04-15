@@ -236,20 +236,21 @@ class ModeloCaracteristicas:
 
     def obtenerRelacionesCaracteristica(self, nombreCaracteristica):
         caracteristica = self.buscarCaracteristica(nombreCaracteristica)
+        subCaracteristicas = []
         if caracteristica != None:
-            return caracteristica.relaciones
-        else:
-            return None
+            for subCaracteristica in caracteristica.relaciones:
+                subCaracteristicas.append(subCaracteristica[0])
+        return subCaracteristicas
     def obtenerRelacionesMC(self):
         relacionesMC = {}
         for caracteristica in self.caracteristicas:
             relacionesCaracteristica = []
             for relacionCaracteristica in caracteristica.relaciones:
                 if relacionCaracteristica[1] != "Requiere" and relacionCaracteristica[1] != "Excluye":
-                    print(relacionCaracteristica[1])
                     relacionesCaracteristica.append(relacionCaracteristica[0])
             relacionesMC.update({caracteristica.nombre : relacionesCaracteristica})
         return relacionesMC
+
 
 
 
