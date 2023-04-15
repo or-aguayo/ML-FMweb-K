@@ -259,10 +259,10 @@ def obtenerJSONPrediccion(data):
     for caracteristica in data:
         estado =""
         if " activada" in caracteristica:
-            estado = "activada"
+            estado = "1"
             caracteristica = caracteristica.replace(" activada", "")
         else:
-            estado = "desactivada"
+            estado = "0"
             caracteristica = caracteristica.replace(" desactivada", "")
         print(caracteristica)
         reconfiguracion.update({caracteristica : estado})
