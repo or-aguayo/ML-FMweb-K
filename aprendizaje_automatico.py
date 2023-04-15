@@ -257,12 +257,11 @@ def arbolesAleatoriosInverso(dataset, dato):
 def obtenerJSONPrediccion(data):
     reconfiguracion = {}
     for caracteristica in data:
-        estado =""
+        estado =False
         if " activada" in caracteristica:
-            estado = "1"
+            estado = True
             caracteristica = caracteristica.replace(" activada", "")
         else:
-            estado = "0"
             caracteristica = caracteristica.replace(" desactivada", "")
         print(caracteristica)
         reconfiguracion.update({caracteristica : estado})
