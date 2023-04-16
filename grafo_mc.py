@@ -3,12 +3,19 @@ import numpy as np
 import csv
 class Nodo:
     def __init__(self, nombre):
-        self.nombre = nombre
-        self.relaciones = []
+        self._nombre = nombre
+        self._relaciones = []
 
     def agregarRelacion(self, nodo):
-        self.relaciones.append(nodo)
+        self._relaciones.append(nodo)
 
+    @property
+    def getNombre(self):
+        return self._nombre
+
+    @property
+    def getRelaciones(self):
+        return self._relaciones
 
 class ModeloCaracteristicas:
     def __init__(self):
@@ -18,17 +25,17 @@ class ModeloCaracteristicas:
         self.caracteristicas.append(nodo)
 
     def relacionar(self, nodo1, nodo2, tipoRelacion):
-        nodo1.agregarRelacion([nodo2.nombre,tipoRelacion])
+        nodo1.agregarRelacion([nodo2.getNombre,tipoRelacion])
         #nodo2.agregarRelacion([nodo1])
 
     def buscarCaracteristica(self, nombreCaracteristica):
         for rama in self.caracteristicas:
-            if(rama.nombre == nombreCaracteristica):
+            if(rama.getNombre == nombreCaracteristica):
                 return rama
         return None
     def buscarCaracteristicaPadre(self, nombreCaracteristica, nombreRelacion):
         for rama in self.caracteristicas:
-            for relaciones in rama.relaciones:
+            for relaciones in rama.getRelaciones:
                 if(relaciones == [nombreCaracteristica,nombreRelacion]):
                     return rama
         return None
@@ -36,7 +43,7 @@ class ModeloCaracteristicas:
     def calcularPosiblesEstados(self):
         reconfiguraciones = []
         for nodo in self.caracteristicas:
-            for relacion in nodo.relaciones:
+            for relacion in nodo.getRelaciones:
                 posibleEstado = self.estadoTipoRelacion(relacion)
                 if(posibleEstado != []):
                     reconfiguraciones.append(posibleEstado)
@@ -73,7 +80,7 @@ class ModeloCaracteristicas:
     def buscarRelacionesXOR(self, nodo):
         caracteristicasXOR = []
         caracteristica = self.buscarCaracteristicaPadre(nodo, "XOR")
-        for ramas in caracteristica.relaciones:
+        for ramas in caracteristica.getRelaciones:
             if(ramas[1] == "XOR"):
                 caracteristicasXOR.append(ramas[0])
         return caracteristicasXOR
@@ -81,7 +88,7 @@ class ModeloCaracteristicas:
     def buscarRelacionesOR(self, nodo):
         caracteristicasOR = []
         caracteristica = self.buscarCaracteristicaPadre(nodo, "OR")
-        for ramas in caracteristica.relaciones:
+        for ramas in caracteristica.getRelaciones:
             if (ramas[1] == "OR"):
                 caracteristicasOR.append(ramas[0])
         return caracteristicasOR
@@ -95,7 +102,7 @@ class ModeloCaracteristicas:
                 nombreCaracteristica = caracteristica.replace(" desactivada", "")
                 caracteristicaBuscada = self.buscarCaracteristica(nombreCaracteristica)
                 if caracteristicaBuscada != None:
-                    for relacion in caracteristicaBuscada.relaciones:
+                    for relacion in caracteristicaBuscada.getRelaciones:
                         dato = relacion[0] +" activada"
                         #print(dato)
                         if dato in nodo and relacion[1] != "Requiere":
@@ -103,10 +110,10 @@ class ModeloCaracteristicas:
                 else:
                     nombreCaracteristicaActivada = caracteristica.replace(" activada", "")
                     caracteristicaBuscada = self.buscarCaracteristica(nombreCaracteristicaActivada)
-                    existeOR = any("OR" in arreglo for arreglo in caracteristicaBuscada.relaciones)
+                    existeOR = any("OR" in arreglo for arreglo in caracteristicaBuscada.getRelaciones)
                     if existeOR:
                         contadorCaracteristicasActivadas = 0
-                        for relacion in caracteristicaBuscada.relaciones:
+                        for relacion in caracteristicaBuscada.getRelaciones:
                             if relacion[1] == "OR":
                                 dato = relacion[0] + " activada"
                                 if dato in nodo:
@@ -132,7 +139,7 @@ class ModeloCaracteristicas:
                 caracteristicaBuscada = self.buscarCaracteristica(nombreCaracteristica)
                 if caracteristicaBuscada != None:
                     #print(caracteristicaBuscada.nombre)
-                    for ramas in caracteristicaBuscada.relaciones:
+                    for ramas in caracteristicaBuscada.getRelaciones:
                         #print(ramas[1])
                         if(ramas[1]== "Requiere"):
                             caracteristicasRequeridas.append(ramas[0] + " activada")
@@ -152,14 +159,6 @@ class ModeloCaracteristicas:
             array.sort()
             for subarray in array:
                 subarray.sort()
-                #print(subarray)
-                #if isinstance(subarray,list):
-                    #for subsubarray in subarray:
-                        #print("holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-                        #subsubarray.sort()
-                        #print(array)
-        #print("aqui va")
-        #print(arrays)
         return arrays
     def buscarPosibleEstado(self, reconfiguraciones, nodo):
         condicion = False
@@ -190,7 +189,7 @@ class ModeloCaracteristicas:
 
     def buscarCaracteristicaOR(self, nodo):
         caracteristica = self.buscarCaracteristica(nodo)
-        for ramas in caracteristica.relaciones:
+        for ramas in caracteristica.getRelaciones:
             if (ramas[1] == "OR"):
                 return ramas[0]
         return None
@@ -221,7 +220,7 @@ class ModeloCaracteristicas:
 
     def buscarPadre(self, caracteristica):
         for rama in self.caracteristicas:
-            for relaciones in rama.relaciones:
+            for relaciones in rama.getRelaciones:
                 if(relaciones[0] == caracteristica):
                     return rama
         return None
@@ -230,29 +229,35 @@ class ModeloCaracteristicas:
         arbol = []
         print("hola")
         for caracteristica in self.caracteristicas:
-            arbol.append(caracteristica.nombre)
-            print(caracteristica.nombre)
+            arbol.append(caracteristica.getNombre)
+            print(caracteristica.getNombre)
         return arbol
 
     def obtenerRelacionesCaracteristica(self, nombreCaracteristica):
         caracteristica = self.buscarCaracteristica(nombreCaracteristica)
         subCaracteristicas = []
         if caracteristica != None:
-            for subCaracteristica in caracteristica.relaciones:
+            for subCaracteristica in caracteristica.getRelaciones:
                 subCaracteristicas.append(subCaracteristica[0])
         return subCaracteristicas
     def obtenerRelacionesMC(self):
         relacionesMC = {}
         for caracteristica in self.caracteristicas:
             relacionesCaracteristica = []
-            for relacionCaracteristica in caracteristica.relaciones:
+            for relacionCaracteristica in caracteristica.getRelaciones:
                 if relacionCaracteristica[1] != "Requiere" and relacionCaracteristica[1] != "Excluye":
                     relacionesCaracteristica.append(relacionCaracteristica[0])
-            relacionesMC.update({caracteristica.nombre : relacionesCaracteristica})
+            relacionesMC.update({caracteristica.getNombre : relacionesCaracteristica})
         return relacionesMC
 
+    #Entregar caracteristicas activas por subnivel
+    #Ocupar POO para almacenar en local los puntos de variacion
+    #Eliminar esta API
+    #Caracteristica deberia tener el nombre, estado, dockerNombreContenedor
 
 
+#class PuntoVariacion:
+    
 
 
 
