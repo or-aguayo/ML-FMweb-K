@@ -27,7 +27,7 @@ async def periodic_task():
     global numRandom
     numRandom = random.randint(1, 350)
     configuracion = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", numRandom)
-    puntoVariacion = punto_variacion.PuntoVariacion(configuracion, mc)
+    puntoVariacion = punto_variacion.PuntoVariacion(configuracion, mc, "Gestor Aire")
     asyncio.create_task(asyncio.sleep(120))
 
 @app.on_event("startup")
@@ -45,11 +45,14 @@ def read_root():
 
 @app.get("/links")
 def get_links(name : str):
+    name = name.replace("_", " ")
     return puntoVariacion.obtenerConfiguracionNivel(name)
 
 @app.get("/link")
 def get_link(name : str):
+    name = name.replace("_", " ")
     return puntoVariacion.obtenerEstadoCaracteristica(name)
+
 
 @app.get("/reglaAdaptacion")
 def get_regla_adaptacion():

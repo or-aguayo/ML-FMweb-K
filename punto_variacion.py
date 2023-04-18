@@ -33,8 +33,8 @@ class CaracteristicaConfiguracion:
 
 
 class PuntoVariacion:
-    def __init__(self, estadoConfiguracion, grafoMC):
-        self._modeloConfiguracion = self.agregarRelacionesCaracteristicas(self.agregarCaracteristicas(estadoConfiguracion),grafoMC)
+    def __init__(self, estadoConfiguracion, grafoMC, caracteristicaRaiz):
+        self._modeloConfiguracion = self.agregarRelacionesCaracteristicas(self.agregarCaracteristicas(estadoConfiguracion),grafoMC, caracteristicaRaiz)
         self._grafoCaracteristicas = grafoMC
 
     def obtenerConfiguracion(self):
@@ -82,7 +82,13 @@ class PuntoVariacion:
             modeloConfiguracion.append(caracteristicaConfiguracion)
         return modeloConfiguracion
 
-    def agregarRelacionesCaracteristicas(self, modeloConfiguracion, grafoMC):
+    def agregarCaracteristicaRaiz(self, nombreCaracteristica, grafoMC):
+        href = "/" + nombreCaracteristica.replace(" ", "_")
+        caracteristicaConfiguracion = CaracteristicaConfiguracion(nombreCaracteristica, True, nombreCaracteristica, href.lower())
+        return caracteristicaConfiguracion
+
+    def agregarRelacionesCaracteristicas(self, modeloConfiguracion, grafoMC, caracteristicaRaiz):
+        modeloConfiguracion.append(self.agregarCaracteristicaRaiz(caracteristicaRaiz,grafoMC))
         for caracteristicaConf in modeloConfiguracion:
             relacionesCaracteristica = grafoMC.obtenerRelacionesCaracteristica(caracteristicaConf.getCaracteristica)
             for relacion in relacionesCaracteristica:
