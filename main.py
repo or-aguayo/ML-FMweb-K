@@ -1,26 +1,60 @@
 import grafo_mc
 import punto_variacion
 import aprendizaje_automatico
-def inicializar():
-    #Generar el grafo para permutar todos los posibles estados del modelo
+
+from fastapi import FastAPI, BackgroundTasks
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+import time
+import asyncio
+import random
+
+
+app = FastAPI()
+
+origins = [
+    "http://oasis.ceisufro.cl"
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+async def periodic_task():
+    global puntoVariacion
+    global numRandom
+    numRandom = random.randint(1, 350)
+    configuracion = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", numRandom)
+    puntoVariacion = punto_variacion.PuntoVariacion(configuracion, mc)
+    asyncio.create_task(asyncio.sleep(120))
+
+@app.on_event("startup")
+async def iniciar_app():
+    global mc
+    global puntoVariacion
     mc = grafo_mc.generarPosiblesEstados()
-    #Asociar una regla de adaptación para cada punto de variación creado en la permutación
-    aprendizaje_automatico.guardarPredicciones(
-        aprendizaje_automatico.redesNeuronales("data/dataset.csv", "data/datos.csv"),
-        "data/datos_redesneuronales.csv")
+    aprendizaje_automatico.guardarPredicciones(aprendizaje_automatico.redesNeuronales("data/dataset.csv", "data/datos.csv"),
+                                               "data/datos_redesneuronales.csv")
+    asyncio.create_task(periodic_task())
 
-    #Crear una regla adaptación, idealmente debe ser un numero random
-    reglaAdaptacion1 = 250.2
-    #Entrego un numero aleatorio random, que asimila ser una regla de adaptación, el cual a partir de lo anterior clasifica un punto de variación
-    #Esta clasificación se realiza por medio del algoritmo de clasificación de arboles aleatorios
-    puntoVariacion1 = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", reglaAdaptacion1)
-    #presento el punto de variación 1
-    print("Punto de variación 1, ", puntoVariacion1)
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
-    objetoPuntoVariacion = punto_variacion.PuntoVariacion(puntoVariacion1,mc)
-    print("JSON con configuracion ", objetoPuntoVariacion.obtenerConfiguracion())
-    print("Caracteristicas activas del sub nivel Turismo ",objetoPuntoVariacion.obtenerConfiguracionNivel("Turismo"))
-    print("Caracteristicas activas del sub nivel Entretenimiento ", objetoPuntoVariacion.obtenerConfiguracionNivel("Entretenimiento"))
+@app.get("/links")
+def get_links(name : str):
+    return puntoVariacion.obtenerConfiguracionNivel(name)
 
-inicializar()
+@app.get("/link")
+def get_link(name : str):
+    return puntoVariacion.obtenerEstadoCaracteristica(name)
+
+@app.get("/reglaAdaptacion")
+def get_regla_adaptacion():
+    return numRandom
+
+
+
 

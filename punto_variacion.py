@@ -1,9 +1,10 @@
 class CaracteristicaConfiguracion:
-    def __init__(self, caracteristica, estado, contenedorDocker):
+    def __init__(self, caracteristica, estado, contenedorDocker, href):
         self._caracteristica = caracteristica
         self._estado = estado
         self._contenedorDocker = contenedorDocker
         self._subCaracteristicas = []
+        self._href = href
 
     @property
     def getCaracteristica(self):
@@ -24,6 +25,10 @@ class CaracteristicaConfiguracion:
     def agregarRelacion(self, caracteristica):
         self._subCaracteristicas.append(caracteristica)
 
+    @property
+    def getHref(self):
+        return self._href
+
 
 
 
@@ -39,14 +44,29 @@ class PuntoVariacion:
         return reconfiguracion
 
     def obtenerConfiguracionNivel(self,nombreCaracteristica):
-        reconfiguracion = []
+        reconfiguracion = {"links" : []}
         for caracteristica in self._modeloConfiguracion:
             if caracteristica.getCaracteristica == nombreCaracteristica:
                 for subCaracteristica in caracteristica.getSubcaracteristicas:
                     if subCaracteristica.getEstado:
-                        reconfiguracion.append(subCaracteristica.getCaracteristica)
+                        configuracion = {}
+                        configuracion.update({"name" : subCaracteristica.getCaracteristica})
+                        configuracion.update({"href": subCaracteristica.getHref})
+                        reconfiguracion["links"].append(configuracion)
+
                 return reconfiguracion
         return None
+    def obtenerEstadoCaracteristica(self, nombreCaracteristicas):
+        reconfiguracion = {}
+        for caracteristica in self._modeloConfiguracion:
+            if caracteristica.getCaracteristica == nombreCaracteristicas:
+                configuracion = {}
+                if(caracteristica.getEstado):
+                    reconfiguracion.update({"name": caracteristica.getCaracteristica})
+                    reconfiguracion.update({"href": caracteristica.getHref})
+                return reconfiguracion
+        return reconfiguracion
+
 
     def agregarCaracteristicas(self,estadoConfiguracion):
         modeloConfiguracion = []
@@ -57,7 +77,8 @@ class PuntoVariacion:
                 caracteristica = caracteristica.replace(" activada", "")
             else:
                 caracteristica = caracteristica.replace(" desactivada", "")
-            caracteristicaConfiguracion = CaracteristicaConfiguracion(caracteristica,estado,caracteristica)
+            href = "/"+caracteristica.replace(" ","_")
+            caracteristicaConfiguracion = CaracteristicaConfiguracion(caracteristica,estado,caracteristica,href.lower())
             modeloConfiguracion.append(caracteristicaConfiguracion)
         return modeloConfiguracion
 
