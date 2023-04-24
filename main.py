@@ -1,3 +1,5 @@
+from docker import client
+
 import grafo_mc
 import punto_variacion
 import aprendizaje_automatico
@@ -8,7 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import time
 import asyncio
 import random
+import docker
 
+from mapek import Mapek
 
 app = FastAPI()
 
@@ -25,18 +29,21 @@ app.add_middleware(
 async def periodic_task():
     global puntoVariacion
     global numRandom
-    numRandom = random.randint(1, 350)
-    configuracion = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", numRandom)
-    puntoVariacion = punto_variacion.PuntoVariacion(configuracion, mc, "Gestor Aire")
-    asyncio.create_task(asyncio.sleep(120))
+    while True:
+        mapek = Mapek()
+        mapek.monitoreo(mc)
+        puntoVariacion = mapek.getConocimiento()
+        print("pasaron 2 minutos")
+        await asyncio.sleep(120)
+
 
 @app.on_event("startup")
 async def iniciar_app():
     global mc
     global puntoVariacion
     mc = grafo_mc.generarPosiblesEstados()
-    aprendizaje_automatico.guardarPredicciones(aprendizaje_automatico.redesNeuronales("data/dataset.csv", "data/datos.csv"),
-                                               "data/datos_redesneuronales.csv")
+    aprendizaje_automatico.guardarPredicciones(
+        aprendizaje_automatico.predecirResultadoRedesNeuronales(aprendizaje_automatico.entrenarRedesNeuronales("data/dataset.csv"),"data/datos.csv"),"data/datos_redesneuronales.csv")
     asyncio.create_task(periodic_task())
 
 @app.get("/")
