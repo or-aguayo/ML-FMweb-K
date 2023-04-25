@@ -28,11 +28,13 @@ app.add_middleware(
 )
 async def periodic_task():
     global puntoVariacion
-    global numRandom
+    global reglaAdaptacion
     while True:
+        #agregar regla adaptacion
         mapek = Mapek()
         mapek.monitoreo(mc)
         puntoVariacion = mapek.getConocimiento()
+        reglaAdaptacion = mapek.getReglaAdaptacion()
         print("pasaron 2 minutos")
         await asyncio.sleep(120)
 
@@ -63,7 +65,7 @@ def get_link(name : str):
 
 @app.get("/reglaAdaptacion")
 def get_regla_adaptacion():
-    return numRandom
+    return reglaAdaptacion
 
 
 

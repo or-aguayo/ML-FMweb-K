@@ -40,7 +40,7 @@ class PuntoVariacion:
     def obtenerConfiguracion(self):
         reconfiguracion = {}
         for caracteristica in self._modeloConfiguracion:
-            reconfiguracion.update({caracteristica.getCaracteristica: caracteristica.getEstado})
+            reconfiguracion.update({caracteristica.getCaracteristica.replace(" ","_").lower(): caracteristica.getEstado})
         return reconfiguracion
 
     def obtenerConfiguracionNivel(self,nombreCaracteristica):
@@ -50,8 +50,8 @@ class PuntoVariacion:
                 for subCaracteristica in caracteristica.getSubcaracteristicas:
                     if subCaracteristica.getEstado:
                         configuracion = {}
-                        configuracion.update({"name" : subCaracteristica.getCaracteristica})
-                        configuracion.update({"href": subCaracteristica.getHref})
+                        configuracion.update({"name" : subCaracteristica.getCaracteristica.replace(" ","_").lower()})
+                        configuracion.update({"href": subCaracteristica.getHref.replace(" ","_").lower()})
                         reconfiguracion["links"].append(configuracion)
 
                 return reconfiguracion
@@ -62,8 +62,8 @@ class PuntoVariacion:
             if caracteristica.getCaracteristica == nombreCaracteristicas:
                 configuracion = {}
                 if(caracteristica.getEstado):
-                    reconfiguracion.update({"name": caracteristica.getCaracteristica})
-                    reconfiguracion.update({"href": caracteristica.getHref})
+                    reconfiguracion.update({"name": caracteristica.getCaracteristica.replace(" ","_").lower()})
+                    reconfiguracion.update({"href": caracteristica.getHref.replace(" ","_").lower()})
                 return reconfiguracion
         return reconfiguracion
 
