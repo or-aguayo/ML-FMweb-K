@@ -54,12 +54,10 @@ def read_root():
 
 @app.get("/links")
 def get_links(name : str):
-    name = name.replace("_", " ")
     return puntoVariacion.obtenerConfiguracionNivel(name)
 
 @app.get("/link")
 def get_link(name : str):
-    name = name.replace("_", " ")
     return puntoVariacion.obtenerEstadoCaracteristica(name)
 
 

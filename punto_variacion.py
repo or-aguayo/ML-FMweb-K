@@ -46,14 +46,18 @@ class PuntoVariacion:
     def obtenerConfiguracionNivel(self,nombreCaracteristica):
         reconfiguracion = {"links" : []}
         for caracteristica in self._modeloConfiguracion:
+            print(caracteristica.getCaracteristica)
             if caracteristica.getCaracteristica == nombreCaracteristica:
+                print("encuentro")
                 for subCaracteristica in caracteristica.getSubcaracteristicas:
+                    print("llego aca")
                     if subCaracteristica.getEstado:
+                        print("aaaaa")
                         configuracion = {}
                         configuracion.update({"name" : subCaracteristica.getCaracteristica.replace(" ","_").lower()})
                         configuracion.update({"href": subCaracteristica.getHref.replace(" ","_").lower()})
                         reconfiguracion["links"].append(configuracion)
-
+                print(reconfiguracion)
                 return reconfiguracion
         return None
     def obtenerEstadoCaracteristica(self, nombreCaracteristicas):
@@ -78,21 +82,25 @@ class PuntoVariacion:
             else:
                 caracteristica = caracteristica.replace(" desactivada", "")
             href = "/"+caracteristica.replace(" ","_")
-            caracteristicaConfiguracion = CaracteristicaConfiguracion(caracteristica,estado,caracteristica,href.lower())
+            caracteristicaConfiguracion = CaracteristicaConfiguracion(caracteristica.replace(" ","_").lower(),estado,caracteristica.replace(" ","_").lower(),href.lower())
             modeloConfiguracion.append(caracteristicaConfiguracion)
         return modeloConfiguracion
 
     def agregarCaracteristicaRaiz(self, nombreCaracteristica, grafoMC):
         href = "/" + nombreCaracteristica.replace(" ", "_")
-        caracteristicaConfiguracion = CaracteristicaConfiguracion(nombreCaracteristica, True, nombreCaracteristica, href.lower())
+        caracteristicaConfiguracion = CaracteristicaConfiguracion(nombreCaracteristica.replace(" ","_").lower(), True, nombreCaracteristica.replace(" ","_").lower(), href.lower())
         return caracteristicaConfiguracion
 
     def agregarRelacionesCaracteristicas(self, modeloConfiguracion, grafoMC, caracteristicaRaiz):
         modeloConfiguracion.append(self.agregarCaracteristicaRaiz(caracteristicaRaiz,grafoMC))
         for caracteristicaConf in modeloConfiguracion:
-            relacionesCaracteristica = grafoMC.obtenerRelacionesCaracteristica(caracteristicaConf.getCaracteristica)
+            relacionesCaracteristica = grafoMC.obtenerRelacionesCaracteristica(caracteristicaConf.getCaracteristica.replace("_"," ").capitalize())
+            print(caracteristicaConf.getCaracteristica.replace("_"," ").capitalize())
             for relacion in relacionesCaracteristica:
                 for subCaracteristicaConf in modeloConfiguracion:
-                    if relacion == subCaracteristicaConf.getCaracteristica:
+                    relacionCaracteristica = relacion.replace(" ","_").lower()
+                    print("nombre relacion ",relacion)
+                    if relacionCaracteristica == subCaracteristicaConf.getCaracteristica:
+                        print("hola ", subCaracteristicaConf.getCaracteristica)
                         caracteristicaConf.agregarRelacion(subCaracteristicaConf)
         return modeloConfiguracion

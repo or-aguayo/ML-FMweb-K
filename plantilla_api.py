@@ -17,14 +17,14 @@ async def iniciar_app():
 
 
 @app.get("/obtenerReconfiguracion")
-async def obtenerReconfiguracion(reglaAdaptacion : float):
-    puntoVariacion = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", reglaAdaptacion)
-    return puntoVariacion
+async def obtenerReconfiguracion(reglaAdaptacion1 : float):
+    puntoVariacion1 = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", 1)
+    return puntoVariacion1
 
 @app.get("/obtenerReconfiguracionJSON")
-async def obtenerReconfiguracionJSON(reglaAdaptacion : float):
-    puntoVariacion = aprendizaje_automatico.obtenerJSONPrediccion(aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", reglaAdaptacion))
-    return puntoVariacion
+async def obtenerReconfiguracionJSON(reglaAdaptacion1 : float):
+    puntoVariacion1 = aprendizaje_automatico.obtenerJSONPrediccion(aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", reglaAdaptacion1))
+    return puntoVariacion1
 
 
 #funcion que retorna el arbol completo de caracteristicas
