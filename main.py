@@ -44,8 +44,8 @@ async def iniciar_app():
     global mc
     global puntoVariacion
     mc = grafo_mc.generarPosiblesEstados()
-    aprendizaje_automatico.guardarPredicciones(
-        aprendizaje_automatico.predecirResultadoRedesNeuronales(aprendizaje_automatico.entrenarRedesNeuronales("data/dataset.csv"),"data/datos.csv"),"data/datos_redesneuronales.csv")
+    #aprendizaje_automatico.guardarPredicciones(aprendizaje_automatico.predecirResultadoRedesNeuronales(aprendizaje_automatico.entrenarRedesNeuronales("data/dataset.csv"),"data/datos.csv"),"data/datos_redesneuronales.csv")
+    aprendizaje_automatico.guardarPredicciones(aprendizaje_automatico.entrenamientoPorEtapas(),"data/datos_redesneuronalesprofundas.csv")
     asyncio.create_task(periodic_task())
 
 @app.get("/")

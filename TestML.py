@@ -191,8 +191,30 @@ def generarComparacionEvaluacionModelos():
     plt.title('Comparación de modelos de regresión')
     plt.legend()
     plt.show()
+def filtrar_csv(input_file, output_file, columna, valor):
+    with open(input_file, 'r', newline='', encoding='utf-8') as archivo_entrada:
+        with open(output_file, 'w', newline='', encoding='utf-8') as archivo_salida:
+            lector = csv.reader(archivo_entrada, delimiter=',')
+            escritor = csv.writer(archivo_salida, delimiter=',')
+
+            # Copiar la cabecera del archivo original al archivo filtrado
+            cabecera = next(lector)
+            escritor.writerow(cabecera)
+
+            # Filtrar y guardar filas en el nuevo archivo
+            for fila in lector:
+                if fila[columna] == valor:
+                    escritor.writerow(fila)
+
+
 
 
 
 #generarComparacionEvaluacionModelos()
-evaluarAutoencoder()
+#evaluarAutoencoder()
+
+aprendizaje_automatico.guardarPredicciones(
+        aprendizaje_automatico.entrenamientoPorEtapas(),
+    "data/datos_redesneuronalesprofundas.csv")
+
+#revisar encoders, quizas puedo agregar el datos csv como el ultimo encoder

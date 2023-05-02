@@ -13,7 +13,7 @@ class Mapek:
     def monitoreo(self, mc):
         numRandom = random.randint(1, 350)
         print(numRandom)
-        configuracion = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronales.csv", numRandom)
+        configuracion = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronalesprofundas.csv", numRandom)
         self.analizar(mc, configuracion, numRandom)
 
     def analizar(self, mc, configuracion, reglaAdaptacion):
