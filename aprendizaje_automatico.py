@@ -566,7 +566,7 @@ def entrenamientoPorEtapas():
     optimizer = keras.optimizers.Adagrad(learning_rate=0.01)
     model_grande.compile(optimizer= optimizer, loss='mean_squared_error')
 
-    model_grande.fit(x_train_grande, y_train_grande, epochs=200, batch_size=32,
+    model_grande.fit(x_train_grande, y_train_grande, epochs=350, batch_size=32,
                      validation_data=(x_test_grande, y_test_grande))
     # Obtén los pesos de la capa oculta
     hidden_layer_weights = model_grande.layers[1].get_weights()

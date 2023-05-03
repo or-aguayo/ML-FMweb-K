@@ -48,11 +48,8 @@ class PuntoVariacion:
         for caracteristica in self._modeloConfiguracion:
             print(caracteristica.getCaracteristica)
             if caracteristica.getCaracteristica == nombreCaracteristica:
-                print("encuentro")
                 for subCaracteristica in caracteristica.getSubcaracteristicas:
-                    print("llego aca")
                     if subCaracteristica.getEstado:
-                        print("aaaaa")
                         configuracion = {}
                         configuracion.update({"name" : subCaracteristica.getCaracteristica.replace(" ","_").lower()})
                         configuracion.update({"href": subCaracteristica.getHref.replace(" ","_").lower()})
@@ -95,12 +92,9 @@ class PuntoVariacion:
         modeloConfiguracion.append(self.agregarCaracteristicaRaiz(caracteristicaRaiz,grafoMC))
         for caracteristicaConf in modeloConfiguracion:
             relacionesCaracteristica = grafoMC.obtenerRelacionesCaracteristica(caracteristicaConf.getCaracteristica.replace("_"," ").capitalize())
-            print(caracteristicaConf.getCaracteristica.replace("_"," ").capitalize())
             for relacion in relacionesCaracteristica:
                 for subCaracteristicaConf in modeloConfiguracion:
                     relacionCaracteristica = relacion.replace(" ","_").lower()
-                    print("nombre relacion ",relacion)
                     if relacionCaracteristica == subCaracteristicaConf.getCaracteristica:
-                        print("hola ", subCaracteristicaConf.getCaracteristica)
                         caracteristicaConf.agregarRelacion(subCaracteristicaConf)
         return modeloConfiguracion

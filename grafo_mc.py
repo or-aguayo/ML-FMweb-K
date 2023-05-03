@@ -264,7 +264,7 @@ class ModeloCaracteristicas:
 
 def generarPosiblesEstados():
     mc = ModeloCaracteristicas()
-    mc.agregarCaracteristica(Nodo("Gestor Aire"))
+    mc.agregarCaracteristica(Nodo("Gestor aire"))
     mc.agregarCaracteristica(Nodo("Visualizador calidad de aire"))
     mc.agregarCaracteristica(Nodo("Visualizador restriccion uso lena"))
     mc.agregarCaracteristica(Nodo("Turismo"))
@@ -275,10 +275,10 @@ def generarPosiblesEstados():
     mc.agregarCaracteristica(Nodo("Entretenimiento familiar"))
     mc.agregarCaracteristica(Nodo("Entretenimiento adulto"))
     mc.agregarCaracteristica(Nodo("Entretenimiento tercera edad"))
-    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"),mc.buscarCaracteristica("Visualizador calidad de aire"), "Obligatoria")
-    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"), mc.buscarCaracteristica("Turismo"), "Obligatoria")
-    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"), mc.buscarCaracteristica("Deportes"), "Opcional")
-    mc.relacionar(mc.buscarCaracteristica("Gestor Aire"), mc.buscarCaracteristica("Entretenimiento"), "Opcional")
+    mc.relacionar(mc.buscarCaracteristica("Gestor aire"),mc.buscarCaracteristica("Visualizador calidad de aire"), "Obligatoria")
+    mc.relacionar(mc.buscarCaracteristica("Gestor aire"), mc.buscarCaracteristica("Turismo"), "Obligatoria")
+    mc.relacionar(mc.buscarCaracteristica("Gestor aire"), mc.buscarCaracteristica("Deportes"), "Opcional")
+    mc.relacionar(mc.buscarCaracteristica("Gestor aire"), mc.buscarCaracteristica("Entretenimiento"), "Opcional")
     mc.relacionar(mc.buscarCaracteristica("Visualizador calidad de aire"), mc.buscarCaracteristica("Visualizador restriccion uso lena"), "Opcional")
     mc.relacionar(mc.buscarCaracteristica("Turismo"), mc.buscarCaracteristica("Ambientes cerrados"), "XOR")
     mc.relacionar(mc.buscarCaracteristica("Turismo"), mc.buscarCaracteristica("Ambientes abiertos"), "XOR")

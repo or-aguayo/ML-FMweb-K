@@ -14,6 +14,7 @@ class Mapek:
         numRandom = random.randint(1, 350)
         print(numRandom)
         configuracion = aprendizaje_automatico.arbolesAleatoriosInverso("data/datos_redesneuronalesprofundas.csv", numRandom)
+        print(configuracion)
         self.analizar(mc, configuracion, numRandom)
 
     def analizar(self, mc, configuracion, reglaAdaptacion):
@@ -38,7 +39,7 @@ class Mapek:
 
 
     def conocimiento(self, configuracion, mc, reglaAdaptacion):
-        self._puntoVariacion = punto_variacion.PuntoVariacion(configuracion, mc, "Gestor Aire")
+        self._puntoVariacion = punto_variacion.PuntoVariacion(configuracion, mc, "gestor_aire")
         self._reglaAdaptacion = reglaAdaptacion
 
     def getConocimiento(self):
