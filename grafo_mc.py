@@ -240,6 +240,15 @@ class ModeloCaracteristicas:
             for subCaracteristica in caracteristica.getRelaciones:
                 subCaracteristicas.append(subCaracteristica[0])
         return subCaracteristicas
+
+    def obtenerRelacionesCaracteristicaConRestriccion(self, nombreCaracteristica):
+        caracteristica = self.buscarCaracteristica(nombreCaracteristica)
+        subCaracteristicas = []
+        if caracteristica != None:
+            for subCaracteristica in caracteristica.getRelaciones:
+                if subCaracteristica[1] != "Requiere" and subCaracteristica[1] != "Excluye":
+                    subCaracteristicas.append(subCaracteristica[0])
+        return subCaracteristicas
     def obtenerRelacionesMC(self):
         relacionesMC = {}
         for caracteristica in self.caracteristicas:

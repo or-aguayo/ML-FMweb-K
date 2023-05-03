@@ -91,7 +91,7 @@ class PuntoVariacion:
     def agregarRelacionesCaracteristicas(self, modeloConfiguracion, grafoMC, caracteristicaRaiz):
         modeloConfiguracion.append(self.agregarCaracteristicaRaiz(caracteristicaRaiz,grafoMC))
         for caracteristicaConf in modeloConfiguracion:
-            relacionesCaracteristica = grafoMC.obtenerRelacionesCaracteristica(caracteristicaConf.getCaracteristica.replace("_"," ").capitalize())
+            relacionesCaracteristica = grafoMC.obtenerRelacionesCaracteristicaConRestriccion(caracteristicaConf.getCaracteristica.replace("_"," ").capitalize())
             for relacion in relacionesCaracteristica:
                 for subCaracteristicaConf in modeloConfiguracion:
                     relacionCaracteristica = relacion.replace(" ","_").lower()
