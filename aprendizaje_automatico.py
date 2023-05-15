@@ -523,6 +523,78 @@ def autoEncoderRedesNeuronales2():
                          validation_data=(x_test_peque_encoded, y_test_peque))
 
 
+
+def segmentarDatasetEmisionesAire(rutaArchivo):
+    df_grande = pd.read_csv(rutaArchivo)
+    x_grande = df_grande.iloc[:, :-1].values  # características
+    y_grande = df_grande.iloc[:, -1].str.replace(',', '.').astype(float).values
+    x_train_grande, x_test_grande, y_train_grande, y_test_grande = train_test_split(x_grande, y_grande, test_size=0.2,
+                                                                                    random_state=42)
+    scaler = MaxAbsScaler()
+    x_train_grande_norm = scaler.fit_transform(x_train_grande)
+    x_train_grande = tf.convert_to_tensor(x_train_grande_norm.toarray(), dtype=tf.float32)
+    x_test_grande_norm = scaler.transform(x_test_grande)
+    x_test_grande = tf.convert_to_tensor(x_test_grande_norm.toarray(), dtype=tf.float32)
+    return x_train_grande, x_test_grande, y_train_grande, y_test_grande
+
+def segmentarPuntosVariacion(rutaArchivo):
+    df_peque = pd.read_csv('data/dataset.csv')
+    x_peque = df_peque.iloc[:, :-1].values  # características
+    y_peque = df_peque.iloc[:, -1].values
+    x_peque = transformarDataset(x_peque, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    x_train_peque, x_test_peque, y_train_peque, y_test_peque = train_test_split(x_peque, y_peque, test_size=0.2,
+                                                                                random_state=42)
+    scalerMinmax = MinMaxScaler()
+    x_train_peque_norm = scalerMinmax.fit_transform(x_train_peque)
+    x_train_peque = tf.convert_to_tensor(x_train_peque_norm, dtype=tf.float32)
+    x_test_peque_norm = scalerMinmax.transform(x_test_peque)
+    x_test_peque = tf.convert_to_tensor(x_test_peque_norm, dtype=tf.float32)
+    return x_train_peque, x_test_peque, y_train_peque, y_test_peque
+
+def realizarTransferenciaAprendizaje():
+    x_train_grande, x_test_grande, y_train_grande, y_test_grande = segmentarDatasetEmisionesAire('data/emisiones_aire_filtroMP.csv')
+    x_train_peque, x_test_peque, y_train_peque, y_test_peque = segmentarPuntosVariacion('data/dataset.csv')
+    input_dim_grande = x_train_grande.shape[1]
+    input_data_grande = Input(shape=(input_dim_grande,))
+    hidden_layer_grande = Dense(128, activation='relu')(input_data_grande)
+    hidden_layer_grande = BatchNormalization()(hidden_layer_grande)
+    hidden_layer_grande = Dense(64, activation='relu')(hidden_layer_grande)
+    hidden_layer_grande = Dense(32, activation='relu')(hidden_layer_grande)
+    hidden_layer_grande = Dense(16, activation='relu')(hidden_layer_grande)
+    hidden_layer_grande = Dense(8, activation='relu')(hidden_layer_grande)
+    output_layer_grande = Dense(1)(hidden_layer_grande)
+    model_grande = Model(inputs=input_data_grande, outputs=output_layer_grande)
+    optimizer = keras.optimizers.Adagrad(learning_rate=0.01)
+    model_grande.compile(optimizer=optimizer, loss='mean_squared_error')
+    model_grande.fit(x_train_grande, y_train_grande, epochs=200, batch_size=32,
+                     validation_data=(x_test_grande, y_test_grande))
+    hidden_layer_weights = model_grande.layers[1].get_weights()
+    input_data_features = Input(shape=(input_dim_grande,))
+    features = Dense(128, activation='relu', weights=hidden_layer_weights)(input_data_features)
+    feature_extractor = Model(inputs=input_data_features, outputs=features)
+    input_dim_peque = x_train_peque.shape[1]
+    input_data_peque_resized = Input(shape=(input_dim_peque,))
+    resized_layer = Dense(input_dim_grande, activation='linear')(input_data_peque_resized)
+    feature_extractor_resized = Model(inputs=input_data_peque_resized, outputs=resized_layer)
+
+    # Transforma los datos usando el extractor de características
+    x_train_peque_resized = feature_extractor_resized.predict(x_train_peque)
+    x_test_peque_resized = feature_extractor_resized.predict(x_test_peque)
+    x_train_peque_features = feature_extractor.predict(x_train_peque_resized)
+    x_test_peque_features = feature_extractor.predict(x_test_peque_resized)
+    input_dim_features = x_train_peque_features.shape[1]
+    input_data_peque = Input(shape=(input_dim_features,))
+    hidden_layer_peque = Dense(64, activation='relu')(input_data_peque)
+    output_layer_peque = Dense(1)(hidden_layer_peque)
+
+    model_peque = Model(inputs=input_data_peque, outputs=output_layer_peque)
+    model_peque.compile(optimizer='adam', loss='mean_squared_error')
+
+    model_peque.fit(x_train_peque_features, y_train_peque, epochs=1500, batch_size=32,
+                    validation_data=(x_test_peque_features, y_test_peque))
+
+    return predecirResultadoRedesNeuronalesProfundas(model_grande, model_peque, feature_extractor_resized,
+                                                     feature_extractor, "data/datos.csv")
 def entrenamientoPorEtapas():
     # ... (código previo omitido para facilitar la lectura)
     df_grande = pd.read_csv('data/emisiones_aire_filtroMP.csv')
@@ -562,11 +634,13 @@ def entrenamientoPorEtapas():
     output_layer_grande = Dense(1)(hidden_layer_grande)
 
     model_grande = Model(inputs=input_data_grande, outputs=output_layer_grande)
-    #optimizer = keras.optimizers.Adam(learning_rate=0.03)
-    optimizer = keras.optimizers.Adagrad(learning_rate=0.01)
+    #optimizer = tf.keras.optimizers.Adagrad(learning_rate=0.001, initial_accumulator_value=0.1, epsilon=1e-07)
+    #optimizer = tf.keras.optimizers.Adam(learning_rate=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+    optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.01, rho=0.9, momentum=0.0, epsilon=1e-07)
+    #optimizer = tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.9, nesterov=False)
     model_grande.compile(optimizer= optimizer, loss='mean_squared_error')
 
-    model_grande.fit(x_train_grande, y_train_grande, epochs=200, batch_size=32,
+    model_grande.fit(x_train_grande, y_train_grande, epochs=300, batch_size=32,
                      validation_data=(x_test_grande, y_test_grande))
     # Obtén los pesos de la capa oculta
     hidden_layer_weights = model_grande.layers[1].get_weights()
@@ -591,9 +665,12 @@ def entrenamientoPorEtapas():
     input_data_peque = Input(shape=(input_dim_features,))
     hidden_layer_peque = Dense(64, activation='relu')(input_data_peque)
     output_layer_peque = Dense(1)(hidden_layer_peque)
-
+    #optimizer_peque = tf.keras.optimizers.Adagrad(learning_rate=0.001, initial_accumulator_value=0.1, epsilon=1e-07)
+    #optimizer_peque = tf.keras.optimizers.Adam(learning_rate=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-07)
+    optimizer_peque = tf.keras.optimizers.RMSprop(learning_rate=0.01, rho=0.9, momentum=0.0, epsilon=1e-07)
+    #optimizer_peque = tf.keras.optimizers.SGD(learning_rate=0.001, momentum=0.9, nesterov=False)
     model_peque = Model(inputs=input_data_peque, outputs=output_layer_peque)
-    model_peque.compile(optimizer='adam', loss='mean_squared_error')
+    model_peque.compile(optimizer=optimizer_peque, loss='mean_squared_error')
 
     model_peque.fit(x_train_peque_features, y_train_peque, epochs=1500, batch_size=32,
                     validation_data=(x_test_peque_features, y_test_peque))
