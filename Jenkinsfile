@@ -10,7 +10,7 @@ pipeline {
         }
         stage('Deploy') {
             steps{
-            sh 'docker run -dit -v /var/run/docker.sock:/var/run/docker.sock --port 10000:10000 --name "python-jenkins" -d python-latest'
+            sh 'docker run -dit -v /var/run/docker.sock:/var/run/docker.sock -p 10000:10000 --name "python-jenkins" -d python-latest'
         }
         }
     }
